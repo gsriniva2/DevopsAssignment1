@@ -161,6 +161,5 @@ resource "aws_cloudwatch_metric_alarm" "key_infra_alert" {
 Release Notes:
 
 The script is written in HashiCorp Configuration Language (HCL) for use with Terraform.
-The script uses AWS provider version 3.0 or later.
-Replace placeholder values such as region, availability zones, and specific configurations based on your needs.
+The script uses AWS provider version 3.0 
 Reference IDLE: Visual studio.
