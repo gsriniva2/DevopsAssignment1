@@ -1,0 +1,166 @@
+Assignment 1:
+1. Write IAAC script for provision of a 3-tier application in AWS. You can choose terraform or cloudformation to provide 
+the infrastructure. Your code should provision the following:
+- VPC with a public and private subnet.
+- Route tables for each subnet, private subnet shall have a NAT gateway. 
+- Application tier and data tier shall be launched in private subnet.
+- Web-tier shall be launched in public subnet.
+- Web-tier and application-tier both must have autoscaling enabled and shall be behind an ALB
+- Proper security groups attached across the tiers for proper communication.
+Bonus points will be given to the assignments with following items:
+- Proper DNS mappings with a privately hosted zone in Route53 for application and data-tier.
+- IAM roles attached to the application tier to access RDS, cloudwatch and s3 bucket.
+- Key Infra Alert being integrated with SNS and CloudWatch
+Delivery Outcome:
+- Once the IAAC script is executed, it should create a VPC with valid CIDR block, which contains all VPC related 
+Resources such as valid subnets, route tables (public, private), security groups, NAT gateway, Internet Gateway etc.
+- It should also create EC2 servers for application-tier and web-tier with autoscaling groups and ALB, and RDS instances 
+for data-tier. 
+- Proper security groups and IAM roles should be in place.
+- Architecture Diagram is proper referenced with configuration enabled via terraform or cloudformatio
+
+
+
+# main.tf
+
+provider "aws" {
+  region = "us-east-1"  # Change this to your desired region
+}
+
+# VPC
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+  enable_dns_support = true
+  enable_dns_hostnames = true
+  tags = {
+    Name = "main-vpc"
+  }
+}
+
+# Public Subnet
+resource "aws_subnet" "public" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.1.0/24"
+  availability_zone       = "us-east-1a"  # Change this to your desired availability zone
+  map_public_ip_on_launch = true
+  tags = {
+    Name = "public-subnet"
+  }
+}
+
+# Private Subnet
+resource "aws_subnet" "private" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.2.0/24"
+  availability_zone       = "us-east-1b"  # Change this to your desired availability zone
+  map_public_ip_on_launch = false
+  tags = {
+    Name = "private-subnet"
+  }
+}
+
+# Internet Gateway
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
+  tags = {
+    Name = "main-igw"
+  }
+}
+
+# Route Table for Public Subnet
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main.id
+  }
+
+  tags = {
+    Name = "public-rt"
+  }
+}
+
+# Route Table for Private Subnet
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "private-rt"
+  }
+}
+
+# NAT Gateway for Private Subnet
+resource "aws_nat_gateway" "main" {
+  allocation_id = aws_instance.main.public_ip
+  subnet_id     = aws_subnet.public.id
+  tags = {
+    Name = "nat-gateway"
+  }
+}
+
+# Security Group for Web-tier
+resource "aws_security_group" "web_sg" {
+  vpc_id = aws_vpc.main.id
+  // Add your security group rules for web-tier
+}
+
+# Security Group for Application-tier
+resource "aws_security_group" "app_sg" {
+  vpc_id = aws_vpc.main.id
+  // Add your security group rules for application-tier
+}
+
+# Autoscaling Group and Launch Configuration for Web-tier
+resource "aws_launch_configuration" "web_lc" {
+  // Configure your launch configuration for web-tier
+}
+
+resource "aws_autoscaling_group" "web_asg" {
+  // Configure your autoscaling group for web-tier
+}
+
+# Autoscaling Group and Launch Configuration for Application-tier
+resource "aws_launch_configuration" "app_lc" {
+  // Configure your launch configuration for application-tier
+}
+
+resource "aws_autoscaling_group" "app_asg" {
+  // Configure your autoscaling group for application-tier
+}
+
+# Application Load Balancer
+resource "aws_lb" "main" {
+  internal          = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.web_sg.id]
+  subnets            = [aws_subnet.public.id]
+}
+
+# RDS Instance for Data-tier
+resource "aws_db_instance" "main" {
+  // Configure your RDS instance for data-tier
+}
+
+# DNS Mapping in Route53 (Bonus)
+resource "aws_route53_zone" "private_zone" {
+  name = "example.com"
+}
+
+# IAM Role for Application-tier (Bonus)
+resource "aws_iam_role" "app_role" {
+  // Configure your IAM role for application-tier
+}
+
+# Key Infra Alert with SNS and CloudWatch (Bonus)
+resource "aws_cloudwatch_metric_alarm" "key_infra_alert" {
+  // Configure your CloudWatch alarm for key infrastructure metrics
+}
+
+
+Release Notes:
+
+The script is written in HashiCorp Configuration Language (HCL) for use with Terraform.
+The script uses AWS provider version 3.0 or later.
+Replace placeholder values such as region, availability zones, and specific configurations based on your needs.
+Reference IDLE: Visual studio.
